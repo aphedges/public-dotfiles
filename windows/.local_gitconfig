@@ -1,0 +1,6 @@
+[user]
+	email = user@example.org
+[credential]
+	helper = wincred
+[core]
+	longPaths = true

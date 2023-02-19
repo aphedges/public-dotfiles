@@ -1,0 +1,7 @@
+.DS_Store
+.envrc
+.idea/
+.mypy_cache/
+.node-version
+.python-version
+__pycache__/

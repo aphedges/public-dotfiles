@@ -1,0 +1,4 @@
+[credential]
+	helper = osxkeychain
+[includeIf "gitdir:~/projects/personal/"]
+	path = ~/.personal_gitconfig

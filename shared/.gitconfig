@@ -1,0 +1,47 @@
+[user]
+	name = Alex Hedges
+	email = user@example.org
+[core]
+	autocrlf = input
+	editor = vim
+	excludesfile = ~/.gitignore
+[advice]
+	detachedHead = false
+	skippedCherryPicks = false
+[alias]
+	amend = commit --amend --no-edit
+	amend-date = "!bash -c 'git amend --date=\"$(date)\"'"
+	amend-msg = commit --amend
+	cb = checkout -b
+	cm = commit -m
+	co = checkout
+	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+	force = push --force-with-lease
+	fuller = show --pretty=fuller
+	new = push --set-upstream origin HEAD
+	ol = log --oneline -10
+	ra = rebase --abort
+	rb = "!bash -c \"git rebase -i HEAD~$1\" -"
+	rc = rebase --continue
+	sync = "!bash -c 'BRANCH=$(git rev-parse --abbrev-ref HEAD); REMOTE_BRANCH=$(git rev-parse --abbrev-ref HEAD@{u}); git co HEAD^0; git branch -f \"$BRANCH\" \"$REMOTE_BRANCH\"; git co -'"
+	unstage = restore --staged
+[am]
+	threeWay = true
+[color]
+	ui = auto
+[log]
+	follow = true
+[pull]
+	ff = only
+	rebase = false
+[rebase]
+	updateRefs = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[include]
+	path = ~/.local_gitconfig

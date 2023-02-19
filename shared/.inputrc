@@ -1,0 +1,4 @@
+$include /etc/inputrc
+
+set colored-stats On
+set revert-all-at-newline on
