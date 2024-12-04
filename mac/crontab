@@ -1,0 +1,2 @@
+SHELL=/opt/homebrew/bin/bash
+@hourly /opt/homebrew/bin/bash $HOME/dotfiles/snapshot_git.sh $HOME/notes/ &>>$HOME/.cache/note_snapshot_log.txt

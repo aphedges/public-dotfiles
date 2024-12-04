@@ -1,4 +1,6 @@
 $include /etc/inputrc
 
-set colored-stats On
+set colored-stats on
+set completion-query-items 100
+set mark-symlinked-directories on
 set revert-all-at-newline on

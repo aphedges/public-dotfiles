@@ -1,23 +1,28 @@
 [user]
 	name = Alex Hedges
-	email = user@example.org
+	email = user1@name7.example.com
 [core]
 	autocrlf = input
 	editor = vim
 	excludesfile = ~/.gitignore
 [advice]
 	detachedHead = false
+	diverging = false
 	skippedCherryPicks = false
 [alias]
 	amend = commit --amend --no-edit
-	amend-date = "!bash -c 'git amend --date=\"$(date)\"'"
+	# Copy author date from another commit to the current commit
+	amend-date = "!bash -c \"COMMIT=$1\"';AUTHOR_DATE=$(git log -1 --format=format:'%aI' $COMMIT); git amend --date=\"$AUTHOR_DATE\"'"
 	amend-msg = commit --amend
+	amend-now = "!bash -c 'git amend --date=\"$(date)\"'"
 	cb = checkout -b
 	cm = commit -m
 	co = checkout
 	cp = cherry-pick
 	cpa = cherry-pick --abort
 	cpc = cherry-pick --continue
+	d = diff
+	dc = diff --cached
 	force = push --force-with-lease
 	fuller = show --pretty=fuller
 	new = push --set-upstream origin HEAD
@@ -31,13 +36,20 @@
 	threeWay = true
 [color]
 	ui = auto
+[fetch]
+	all = true
+[init]
+	defaultBranch = main
 [log]
 	follow = true
 [pull]
 	ff = only
 	rebase = false
 [rebase]
+	autoSquash = true
 	updateRefs = true
+[rerere]
+	enable = true
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f

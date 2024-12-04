@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import platform
 import re
+import shutil
 import subprocess
 import tempfile
 from typing import Mapping, Optional, Sequence
@@ -92,7 +93,8 @@ def main() -> None:
             if match:
                 version_tuple = tuple(int(i) for i in match.groups())
                 if (
-                    version_tuple < (3, 6)
+                    version_tuple < (2, 7, 18)
+                    or (3,) <= version_tuple < (3, 6)
                     or (3, 6) <= version_tuple < (3, 6, 15)
                     or (3, 7) <= version_tuple < (3, 7, 8)
                     or (3, 8) <= version_tuple < (3, 8, 4)
@@ -114,6 +116,13 @@ def main() -> None:
             )
             continue
 
+        if virtualenv["version"].startswith(("anaconda", "miniconda")):
+            print(
+                f"virtualenv {virtualenv['name']} is actually a conda environment, "
+                "which this script cannot handle. Skipping creation."
+            )
+            continue
+
         if virtualenv["name"] in installed_versions:
             print(f"virtualenv {virtualenv['name']} already exists. Skipping creation.")
         else:
@@ -127,6 +136,10 @@ def main() -> None:
             p for p in virtualenv["contents"] if p.split("==")[0] in {"pip", "setuptools", "wheel"}
         ]
         install_requirements(pip_exec, setup_requirements)
+        # Uninstall `setuptools` if not in original requirements
+        # `setuptools` is automatically installed in environments for Python 3.11 and older
+        if not any(req.startswith("setuptools==") for req in setup_requirements):
+            run(pip_exec, "uninstall", "--yes", "setuptools")
         match = re.fullmatch(
             r"pip (\d+).(\d+)(?:.(\d+))? .*", run_with_output(pip_exec, "--version")
         )
@@ -140,6 +153,18 @@ def main() -> None:
 
     print(f"Setting global version to {data['global_version']}")
     run("pyenv", "global", data["global_version"])
+
+    if data.get("pipx_spec_metadata"):
+        pipx_path = shutil.which("pipx")
+        if pipx_path:
+            print("Installing packages in pipx")
+            pipx_spec_metadata = data["pipx_spec_metadata"]
+            with tempfile.NamedTemporaryFile("w", encoding="utf-8") as file:
+                file.write(json.dumps(pipx_spec_metadata))
+                file.flush()  # Needed to prevent an empty file
+                run(pipx_path, "install-all", file.name)
+        else:
+            print("`pipx` is not in `PATH`. Skipping `pipx` state restoration.")
 
 
 if __name__ == "__main__":

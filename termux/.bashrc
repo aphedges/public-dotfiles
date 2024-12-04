@@ -13,11 +13,9 @@ set_variables
 # Allow local overrides of other programs
 export PATH=$HOME/.local/bin:$PATH
 
-# Set custom prompt last so failure is more obvious
-# Keep original PS1 to limit length on the smaller phone screen
-# This should be remove later once I add smarter PS1 logic
-OLD_PS1=$PS1
+# Load cached $OLDPWD from file
+load_oldpwd
+
 set_prompt
-PS1=$OLD_PS1
 
 set +euo pipefail

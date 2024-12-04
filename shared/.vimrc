@@ -18,3 +18,12 @@ set rulerformat=%12(%l,%v%)
 
 " From https://csswizardry.com/2017/03/configuring-git-and-vim/
 autocmd FileType gitcommit set textwidth=72 tabstop=2 shiftwidth=2
+" From https://vimdoc.sourceforge.net/htmldoc/filetype.html#:filetype-plugin-off
+" Required to prevent override by installed plugin on TACC
+autocmd FileType gitcommit filetype plugin off
+
+" From https://vimhelp.org/usr_05.txt.html#editorconfig-install
+" Added in Vim 9.1
+if v:version >= 901
+  packadd! editorconfig
+endif

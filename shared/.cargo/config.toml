@@ -1,0 +1,8 @@
+[cargo-new]
+vcs = "none"
+
+[http]
+ssl-version.min = "tlsv1.2"  # Defaults to `"tlsv1.0"`
+
+[net]
+git-fetch-with-cli = true  # Needed to respect `~/.ssh/config`

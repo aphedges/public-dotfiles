@@ -14,21 +14,19 @@ if [[ -z ${PS1:-} ]]; then
   return
 fi
 
-set -euo pipefail
+#set -euo pipefail
 
 source "$HOME"/.bash_common
 
 # Set aliases, functions, and variables
 set_aliases
+alias bat=batcat
 set_functions
 set_variables
 
 # Initialize programs
-initialize_slurm || true
-initialize_spack || true
 initialize_pyenv
 initialize_python
-initialize_node
 initialize_direnv
 
 # Allow local overrides of other programs
@@ -40,4 +38,4 @@ load_oldpwd
 # Set custom prompt last so failure is more obvious
 set_prompt
 
-set +euo pipefail
+#set +euo pipefail

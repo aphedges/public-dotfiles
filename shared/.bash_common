@@ -7,6 +7,12 @@ function warn() {
 export -f warn
 
 function initialize_homebrew() {
+  # Homebrew installs to `/opt/homebrew` on Apple Silicon
+  # See https://docs.brew.sh/Installation
+  if [[ -d /opt/homebrew/bin ]]; then
+    export PATH=/opt/homebrew/bin:$PATH
+  fi
+
   if ! command -v brew 1>/dev/null 2>&1; then
     warn "brew not found in \$PATH. Skipping Homebrew initialization."
     return 1
@@ -14,38 +20,71 @@ function initialize_homebrew() {
 
   BREW_PREFIX="$(brew --prefix)"
 
-  # Adds GNU versions of tools to path
-  PATH="$BREW_PREFIX/opt/bc/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/bzip2/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/coreutils/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/curl/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/file-formula/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/findutils/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/gnu-which/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/grep/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/inetutils/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/libxml2/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/make/libexec/gnubin:$PATH"
-  PATH="$BREW_PREFIX/opt/openjdk/libexec/openjdk.jdk/Contents/Home/bin/:$PATH"
-  PATH="$BREW_PREFIX/opt/openssl@1.1/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/util-linux/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/util-linux/sbin:$PATH"
-  PATH="$BREW_PREFIX/opt/unzip/bin:$PATH"
-  PATH="$BREW_PREFIX/opt/zip/bin:$PATH"
-  PATH="/usr/local/sbin:$PATH" # Added after `brew doctor` warning
+  # Add Homebrew-installed commands to `PATH` where needed
+  BREW_BIN_DIRS=(
+    opt/bc/bin
+    opt/bzip2/bin
+    opt/coreutils/libexec/gnubin
+    opt/curl/bin
+    opt/file-formula/bin
+    opt/findutils/libexec/gnubin
+    opt/gawk/libexec/gnubin
+    opt/gnu-sed/libexec/gnubin
+    opt/gnu-tar/libexec/gnubin
+    opt/gnu-which/libexec/gnubin
+    opt/grep/libexec/gnubin
+    opt/inetutils/libexec/gnubin
+    opt/libiconv/bin
+    opt/libpcap/bin
+    opt/libtool/libexec/gnubin
+    opt/libxml2/bin
+    opt/lsof/bin
+    opt/m4/bin
+    opt/make/libexec/gnubin
+    opt/openjdk/libexec/openjdk.jdk/Contents/Home/bin/
+    opt/openssl@1.1/bin
+    opt/unzip/bin
+    opt/util-linux/bin
+    opt/util-linux/sbin
+    opt/zip/bin
+    sbin # Added after `brew doctor` warning
+  )
+  for BREW_BIN_DIR in "${BREW_BIN_DIRS[@]}"; do
+    if ! [[ -d $BREW_PREFIX/$BREW_BIN_DIR ]]; then
+      warn "Directory '$BREW_PREFIX/$BREW_BIN_DIR' does not exist."
+      continue
+    fi
+    PATH=$BREW_PREFIX/$BREW_BIN_DIR:$PATH
+  done
+
+  # Add GNU versions of man pages to manpath
+  if [[ -z ${MANPATH:-} ]]; then
+    MANPATH=
+  fi
+  MANPATH=$(echo "$BREW_PREFIX"/Cellar/*/*/libexec/gnuman/ | tr ' ' ':'):$MANPATH
+  export MANPATH
 
   # For building Python
-  if [[ -z "${PKG_CONFIG_PATH:-}" ]]; then
+  if [[ -z ${PKG_CONFIG_PATH:-} ]]; then
     PKG_CONFIG_PATH=
   fi
+  PKG_CONFIG_PATH="$BREW_PREFIX/opt/ncurses/lib/pkgconfig:$PKG_CONFIG_PATH"
+  PKG_CONFIG_PATH="$BREW_PREFIX/opt/openssl@3/lib/pkgconfig:$PKG_CONFIG_PATH"
   PKG_CONFIG_PATH="$BREW_PREFIX/opt/tcl-tk/lib/pkgconfig:$PKG_CONFIG_PATH"
-  PKG_CONFIG_PATH="$BREW_PREFIX/opt/openssl@1.1/lib/pkgconfig:$PKG_CONFIG_PATH"
   export PKG_CONFIG_PATH
 
   # Add completion for some Brew-installed programs
+  # There is a bug with the hwloc Bash completion file (called recursively)
+  # that prevents using `set -u`
+  if [[ -o nounset ]]; then
+    set +u
+    ENABLE_NOUNSET=1
+  fi
   source "$BREW_PREFIX"/etc/profile.d/bash_completion.sh
+  if [[ -n ${ENABLE_NOUNSET:-} ]]; then
+    set -u
+    unset ENABLE_NOUNSET
+  fi
   source "$BREW_PREFIX"/etc/bash_completion.d/brew
   source "$BREW_PREFIX"/etc/bash_completion.d/brew-services
   # There is a bug with the docker Bash completion files that prevents using `set -e`
@@ -54,8 +93,7 @@ function initialize_homebrew() {
     ENABLE_ERREXIT=1
   fi
   source "$BREW_PREFIX"/etc/bash_completion.d/docker
-  source "$BREW_PREFIX"/etc/bash_completion.d/docker-compose
-  if [[ -n "${ENABLE_ERREXIT:-}" ]]; then
+  if [[ -n ${ENABLE_ERREXIT:-} ]]; then
     set -e
     unset ENABLE_ERREXIT
   fi
@@ -67,36 +105,73 @@ function initialize_homebrew() {
   for f in "$BREW_PREFIX"/opt/util-linux/etc/bash_completion.d/*; do
     source "$f"
   done
-
-  # Override default Homebrew settings
-  # See https://docs.brew.sh/Manpage#environment for explanations
-  export HOMEBREW_UPDATE_REPORT_ALL_FORMULAE=1
 }
 export -f initialize_homebrew
 
 function initialize_spack() {
+  if ! command -v python3 1>/dev/null 2>&1; then
+    warn "python3 not found in \$PATH. Skipping Spack initialization."
+    return 1
+  fi
+
   USER_SPACK_ROOT=$HOME/.spack_install
   SPACK_UPSTREAM_FILE="$HOME/.spack/upstreams.yaml"
-  if [[ -f "$SPACK_UPSTREAM_FILE" ]] ; then
+  if [[ -f $SPACK_UPSTREAM_FILE ]]; then
     # This is unfortunately one of the better ways to extract information from a YAML file
     SYSTEM_SPACK_ROOT=$(sed -n 's/.*install_tree: \(.*\)\/opt\/spack.*/\1/p' "$SPACK_UPSTREAM_FILE")
   fi
-  if [[ -d "$USER_SPACK_ROOT" ]] && { [[ -z "${SYSTEM_SPACK_ROOT:-}" ]] || [[ -d "$SYSTEM_SPACK_ROOT" ]] ; }; then
+  if [[ -d $USER_SPACK_ROOT ]] && { [[ -z ${SYSTEM_SPACK_ROOT:-} ]] || [[ -d $SYSTEM_SPACK_ROOT ]]; }; then
     SPACK_ROOT=$USER_SPACK_ROOT
-  elif [[ -d "${SYSTEM_SPACK_ROOT:-}" ]]; then
+  elif [[ -d ${SYSTEM_SPACK_ROOT:-} ]]; then
     SPACK_ROOT=$SYSTEM_SPACK_ROOT
   else
     warn 'No complete Spack install found. Skipping Spack initialization.'
     return 1
   fi
 
+  export SPACK_PYTHON=/usr/bin/python3.9
+  export PYTHONPYCACHEPREFIX=$HOME/.cache/pycache
+
   export SPACK_SKIP_MODULES=1 # Greatly speed up initialization
   . "$SPACK_ROOT"/share/spack/setup-env.sh
-  if [ "$SHLVL" -eq '1' ]; then
-    spack load --only package curl diffutils direnv findutils gawk git gmake grep gzip jq less openjdk openssh procps screen sed strace tar tree util-linux vim wget which coreutils
-    if command -v nvidia-smi 1>/dev/null 2>&1; then
-      spack load --only=package nvtop
-    fi
+  if [[ $SHLVL -eq 1 ]]; then
+    local SPACK_PACKAGES=(
+      bat
+      curl
+      diffutils
+      direnv
+      findutils
+      gawk
+      git
+      git-filter-repo
+      gmake
+      grep
+      gzip
+      jq
+      less
+      libxml2
+      lsof
+      man-db
+      openjdk
+      openssh
+      openssl
+      procps
+      screen
+      sed
+      shellcheck
+      strace
+      tar
+      tree
+      util-linux
+      vim
+      wget
+      which
+      coreutils
+    )
+    spack load "${SPACK_PACKAGES[@]}"
+  fi
+  if command -v nvidia-smi 1>/dev/null 2>&1 && ! command -v nvtop 1>/dev/null 2>&1; then
+    spack load nvtop
   fi
   if which git | grep -q spack; then
     source "$(spack location --install-dir git)/share/git-completion.bash"
@@ -105,16 +180,37 @@ function initialize_spack() {
 export -f initialize_spack
 
 function initialize_python() {
+  # Works for Python 3.8 and later
+  # See https://docs.python.org/3.13/using/cmdline.html#envvar-PYTHONPYCACHEPREFIX
+  export PYTHONPYCACHEPREFIX=$HOME/.cache/pycache
+
   # From https://docs.python-guide.org/dev/pip-virtualenv/#requiring-an-active-virtual-environment-for-pip
   export PIP_REQUIRE_VIRTUALENV=true
 
+  # Generated with `pip completion --bash >> ~/.bash_profile`
+  # pip bash completion start
+  _pip_completion() {
+    # shellcheck disable=SC2207
+    COMPREPLY=($(COMP_WORDS="${COMP_WORDS[*]}" \
+      COMP_CWORD=$COMP_CWORD \
+      PIP_AUTO_COMPLETE=1 $1 2>/dev/null))
+  }
+  complete -o default -F _pip_completion pip
+  # pip bash completion end
+
+  # Use global caches for Python tooling
+  export MYPY_CACHE_DIR=~/.cache/mypy
+  export RUFF_CACHE_DIR=~/.cache/ruff
+}
+export -f initialize_python
+
+function initialize_pyenv() {
   # For pyenv and pyenv-virtualenv setup
   export PYENV_ROOT="$HOME/.pyenv"
-  if [[ -d "$PYENV_ROOT" ]] ; then
+  if [[ -d $PYENV_ROOT/bin ]]; then
     export PATH="$PYENV_ROOT/bin:$PATH"
   fi
   if command -v pyenv 1>/dev/null 2>&1; then
-    eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     if pyenv commands | grep virtualenv-init 1>/dev/null 2>&1; then
       eval "$(pyenv virtualenv-init -)"
@@ -122,25 +218,13 @@ function initialize_python() {
   else
     warn "pyenv not found in \$PATH. Skipping pyenv initialization."
   fi
-
-  # Generated with `pip completion --bash >> ~/.bash_profile`
-  # pip bash completion start
-  _pip_completion()
-  {
-      # shellcheck disable=SC2207
-      COMPREPLY=( $( COMP_WORDS="${COMP_WORDS[*]}" \
-                     COMP_CWORD=$COMP_CWORD \
-                     PIP_AUTO_COMPLETE=1 $1 2>/dev/null ) )
-  }
-  complete -o default -F _pip_completion pip
-  # pip bash completion end
 }
-export -f initialize_python
+export -f initialize_pyenv
 
 function initialize_node() {
   # For nodenv setup
   export NODENV_ROOT="$HOME/.nodenv"
-  if [[ -d "$NODENV_ROOT" ]] ; then
+  if [[ -d $NODENV_ROOT ]]; then
     export PATH="$NODENV_ROOT/bin:$PATH"
   fi
   if command -v nodenv 1>/dev/null 2>&1; then
@@ -174,7 +258,7 @@ function initialize_slurm() {
   # Show detailed information about the given job ID
   alias c="scontrol show job -d"
   # See `-o <output_format>, --format=<output_format>` under `man squeue` for what each field does.
-  format="\"%i %9u %9a %9P %9q %35j %2t %10M %10l %5D %3C %z %R\""
+  format="\"%i %9u %9a %12P %9q %35j %2t %10M %10l %5D %3C %z %R\""
   flags="-S +i -o ${format}"
   # Show the status of only your jobs
   # shellcheck disable=SC2139
@@ -207,7 +291,7 @@ export -f set_aliases
 
 function set_variables() {
   # Silence warning to switch to zsh on macOS
-  if [ "$(uname)" == 'Darwin' ]; then
+  if [[ $(uname) == Darwin ]]; then
     export BASH_SILENCE_DEPRECATION_WARNING=1
   fi
 
@@ -217,6 +301,10 @@ function set_variables() {
   export HISTCONTROL=ignoredups
 
   export TERM=xterm-256color
+
+  # Disable checking for mail
+  # See https://www.gnu.org/software/bash/manual/bash.html#index-MAILCHECK
+  unset MAILCHECK
 
   # Technically different but should be safe to set both to vim
   # See https://unix.stackexchange.com/questions/4859/visual-vs-editor-what-s-the-difference
@@ -234,6 +322,20 @@ function set_variables() {
   export PINK="\033[38;5;213m"
   export PURPLE="\033[38;5;141m"
   export COLOR_NONE="\e[0m"
+
+  # Handle cases where `LS_COLORS` isn't set by default, such as macOS and Termux
+  if [[ -z ${LS_COLORS:-} ]]; then
+    if command -v dircolors 1>/dev/null 2>&1; then
+      eval "$(dircolors)"
+    # `dircolors` isn't available without proper Homebrew initialization
+    elif command -v gdircolors 1>/dev/null 2>&1; then
+      eval "$(gdircolors)"
+    elif [[ -x /opt/homebrew/bin/gdircolors ]]; then
+      eval "$(/opt/homebrew/bin/gdircolors)"
+    else
+      warn "Neither dircolors nor gdircolors found in \$PATH. Skipping LS_COLORS initialization."
+    fi
+  fi
 }
 export -f set_variables
 
@@ -248,6 +350,17 @@ function set_functions() {
   }
   export -f now
 
+  function bw_unlock() {
+    if ! command -v bw 1>/dev/null 2>&1; then
+      warn "bw not found in \$PATH. Function '${FUNCNAME[0]}' unavailable."
+      return 1
+    fi
+
+    BW_SESSION=$(bw unlock --raw)
+    export BW_SESSION
+  }
+  export -f bw_unlock
+
   # WARNING: This function is not cryptographically secure and should be replaced!
   function gen_pwd() {
     warn 'This function is not cryptographically secure and should be replaced!'
@@ -255,6 +368,50 @@ function set_functions() {
     python -c "import base64, uuid; print(base64.b32encode(uuid.uuid4().bytes).decode()[:$length].lower())"
   }
   export -f gen_pwd
+
+  # Function needed because no built-in utilities that:
+  #   1. work on both Linux and macOS, and
+  #   2. work without root access
+  function get_group_mems() {
+    local python_script='
+import grp
+import json
+import sys
+
+group_name = sys.argv[1]
+try:
+    group_mems = grp.getgrnam(group_name).gr_mem
+except Exception:
+    group_mems = []
+output = json.dumps(sorted(group_mems), ensure_ascii=False)
+print(output)
+sys.exit(bool(group_mems) == 0)
+'
+    python -c "$python_script" "$@"
+  }
+  export -f get_group_mems
+
+  function get_nonascii_chars() {
+    local python_script='
+import json
+import string
+import sys
+import unicodedata
+import fileinput
+
+chars = set()
+for line in fileinput.input(encoding="utf-8"):
+    chars.update(line)
+
+nonascii_chars = sorted(chars - set(string.printable))
+nonascii_char_names = {c: unicodedata.name(c, "n/a") for c in nonascii_chars}
+output = json.dumps(nonascii_char_names, ensure_ascii=False, indent=2)
+print(output)
+sys.exit(len(nonascii_chars) != 0)
+'
+    python -c "$python_script" "$@"
+  }
+  export -f get_nonascii_chars
 
   # Source: https://www.gnu.org/software/coreutils/manual/coreutils.html#Random-sources
   function get_seeded_random() {
@@ -264,7 +421,7 @@ function set_functions() {
   }
   export -f get_seeded_random
 
-  function prettyxml () {
+  function prettyxml() {
     if ! command -v xmllint 1>/dev/null 2>&1; then
       warn "xmllint not found in \$PATH. Function '${FUNCNAME[0]}' unavailable."
       return 1
@@ -273,6 +430,15 @@ function set_functions() {
     xmllint --format -
   }
   export -f prettyxml
+
+  # Source: https://www.baeldung.com/linux/repeat-command#bash-profile-function
+  # Note: This command is experimental and might not work properly.
+  function repeat() {
+    for ((i = 0; i < $1; i++)); do
+      eval "${*:2}"
+    done
+  }
+  export -f repeat
 
   function nwatch() {
     if ! command -v nvidia-smi 1>/dev/null 2>&1; then
@@ -283,6 +449,24 @@ function set_functions() {
     watch -n 1 nvidia-smi
   }
   export -f nwatch
+
+  function docker_stop_all() {
+    if ! command -v docker 1>/dev/null 2>&1; then
+      warn "docker not found in \$PATH. Function '${FUNCNAME[0]}' unavailable."
+      return 1
+    fi
+
+    local running_containers
+    running_containers=$(docker ps --quiet)
+    if [[ -z $running_containers ]]; then
+      warn "No running containers found to stop"
+      return 2
+    fi
+    # Cannot quote `$running_containers` because it is a list of arguments
+    # shellcheck disable=SC2086
+    docker stop $running_containers
+  }
+  export -f docker_stop_all
 }
 export -f set_functions
 
@@ -299,26 +483,32 @@ function initialize_trash() {
   export -f rm
   # To use real `rm` instead of `trash` (useful for ./configure and other scripts)
   function realrm() {
-      bash -c "unset -f rm; $*"
+    bash -c "unset -f rm; $*"
   }
   export -f realrm
 }
 export -f initialize_trash
 
 function set_prompt() {
-  # e.g., `d21ml-ahedges:ahedges dotfiles$ `
-  PS1="\[${TEAL}\]\h:\u \[${PURPLE}\]\W\[${COLOR_NONE}\]\$ "
+  # Only display hostname and user if terminal is wide enough
+  if [[ $COLUMNS -ge 80 ]]; then
+    # e.g., `host1:user1 dotfiles$ `
+    export PS1="\[${TEAL}\]\h:\u \[${PURPLE}\]\W\[${COLOR_NONE}\]\$ "
+  else
+    # e.g., `dotfiles$ `
+    export PS1="\[${PURPLE}\]\W\[${COLOR_NONE}\]\$ "
+  fi
 
   # From https://wiki-dev.bash-hackers.org/scripting/debuggingtips#making_xtrace_more_useful
-  # e.g., `+(/Users/ahedges/.bash_common:19): initialize_homebrew(): BREW_PREFIX=/usr/local`
-  PS4='+(${BASH_SOURCE:-}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+  # e.g., `+(/Users/user1/.bash_common:19): initialize_homebrew(): BREW_PREFIX=/usr/local`
+  export PS4='+(${BASH_SOURCE:-}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 }
 export -f set_prompt
 
 function load_oldpwd() {
   # Load $OLDPWD value from the previous session
   export OLDPWD_CACHE="$HOME/.cache/oldpwd"
-  if [[ -f "$OLDPWD_CACHE" ]] ; then
+  if [[ -f $OLDPWD_CACHE ]]; then
     OLDPWD=$(cat "$OLDPWD_CACHE")
     export OLDPWD
   fi
@@ -327,7 +517,7 @@ export -f load_oldpwd
 
 function save_oldpwd() {
   # Save $PWD value for a future session
-  if [[ -n "${OLDPWD_CACHE:-}" ]] ; then
+  if [[ -n ${OLDPWD_CACHE:-} ]]; then
     mkdir -p "$(dirname "$OLDPWD_CACHE")"
     echo "$PWD" >"$OLDPWD_CACHE"
   fi

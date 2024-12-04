@@ -1,5 +1,6 @@
 {
     "config": {
+        "show_update_log": false,
         "scoop_branch": "master",
         "scoop_repo": "https://github.com/ScoopInstaller/Scoop"
     },
@@ -8,15 +9,8 @@
             "Info": "",
             "Source": "main",
             "Name": "7zip",
-            "Version": "22.01",
-            "Updated": "\/Date(1675569360283)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "bc",
-            "Version": "1.07.1",
-            "Updated": "\/Date(1675569269171)\/"
+            "Version": "23.01",
+            "Updated": "\/Date(1714310052158)\/"
         },
         {
             "Info": "",
@@ -24,20 +18,6 @@
             "Name": "bulk-rename-utility",
             "Version": "3.4.4.0",
             "Updated": "\/Date(1675572554089)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "cacert",
-            "Version": "2023-01-10",
-            "Updated": "\/Date(1675569070238)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "dark",
-            "Version": "3.11.2",
-            "Updated": "\/Date(1675570329313)\/"
         },
         {
             "Info": "",
@@ -49,128 +29,44 @@
         {
             "Info": "",
             "Source": "main",
-            "Name": "direnv",
-            "Version": "2.32.2",
-            "Updated": "\/Date(1675569251626)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
             "Name": "ffmpeg",
-            "Version": "5.1.2",
-            "Updated": "\/Date(1675569391801)\/"
+            "Version": "7.0",
+            "Updated": "\/Date(1713058509624)\/"
         },
         {
             "Info": "",
             "Source": "main",
-            "Name": "git-filter-repo",
-            "Version": "2.38.0",
-            "Updated": "\/Date(1675569521876)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "innounp",
-            "Version": "0.50",
-            "Updated": "\/Date(1675572551688)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "jq",
-            "Version": "1.6",
-            "Updated": "\/Date(1675569649768)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "libxml2",
-            "Version": "2.9.3",
-            "Updated": "\/Date(1675967003013)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "make",
-            "Version": "4.4",
-            "Updated": "\/Date(1675569672258)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "neofetch",
-            "Version": "7.1.0",
-            "Updated": "\/Date(1675569720573)\/"
-        },
-        {
-            "Info": "",
-            "Source": "games",
-            "Name": "nethack",
-            "Version": "3.6.6",
-            "Updated": "\/Date(1675569793198)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "pandoc",
-            "Version": "3.0.1",
-            "Updated": "\/Date(1675569888315)\/"
+            "Name": "git",
+            "Version": "2.44.0",
+            "Updated": "\/Date(1714310065766)\/"
         },
         {
             "Info": "",
             "Source": "sysinternals",
             "Name": "process-explorer",
-            "Version": "17.02",
-            "Updated": "\/Date(1675570199137)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "python",
-            "Version": "3.11.2",
-            "Updated": "\/Date(1675958987857)\/"
+            "Version": "17.05",
+            "Updated": "\/Date(1690426837018)\/"
         },
         {
             "Info": "",
             "Source": "extras",
             "Name": "recuva",
-            "Version": "1.53.2083",
-            "Updated": "\/Date(1675571842913)\/"
+            "Version": "1.53.2096",
+            "Updated": "\/Date(1687412310223)\/"
         },
         {
             "Info": "",
             "Source": "extras",
             "Name": "rufus",
-            "Version": "3.21",
-            "Updated": "\/Date(1675570293169)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "shellcheck",
-            "Version": "0.9.0",
-            "Updated": "\/Date(1675569044014)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "shfmt",
-            "Version": "3.6.0",
-            "Updated": "\/Date(1675569902654)\/"
+            "Version": "4.4",
+            "Updated": "\/Date(1705979680322)\/"
         },
         {
             "Info": "",
             "Source": "extras",
             "Name": "speccy",
-            "Version": "1.32.744",
-            "Updated": "\/Date(1675572431416)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "sqlite",
-            "Version": "3.40.1",
-            "Updated": "\/Date(1675569314643)\/"
+            "Version": "1.32.803",
+            "Updated": "\/Date(1679192344406)\/"
         },
         {
             "Info": "",
@@ -181,80 +77,59 @@
         },
         {
             "Info": "",
-            "Source": "main",
-            "Name": "tealdeer",
-            "Version": "1.6.1",
-            "Updated": "\/Date(1675569953473)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "wget",
-            "Version": "1.21.3",
-            "Updated": "\/Date(1675569074110)\/"
+            "Source": "nonportable",
+            "Name": "virtualbox-np",
+            "Version": "7.0.16",
+            "Updated": "\/Date(1713309225768)\/"
         },
         {
             "Info": "",
             "Source": "main",
             "Name": "yt-dlp",
-            "Version": "2023.01.06",
-            "Updated": "\/Date(1675569488164)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "zip",
-            "Version": "3.0",
-            "Updated": "\/Date(1675569152596)\/"
-        },
-        {
-            "Info": "",
-            "Source": "main",
-            "Name": "zstd",
-            "Version": "1.5.2",
-            "Updated": "\/Date(1675574931194)\/"
+            "Version": "2024.04.09",
+            "Updated": "\/Date(1713058520166)\/"
         }
     ],
     "buckets": [
         {
-            "Name": "extras",
-            "Source": "https://github.com/ScoopInstaller/Extras",
-            "Updated": {
-                "value": "\/Date(1676003293000)\/",
-                "DisplayHint": 2,
-                "DateTime": "Thursday, February 9, 2023 11:28:13 PM"
-            },
-            "Manifests": 1774
-        },
-        {
-            "Name": "games",
-            "Source": "https://github.com/Calinou/scoop-games",
-            "Updated": {
-                "value": "\/Date(1676003311000)\/",
-                "DisplayHint": 2,
-                "DateTime": "Thursday, February 9, 2023 11:28:31 PM"
-            },
-            "Manifests": 258
-        },
-        {
             "Name": "main",
             "Source": "https://github.com/ScoopInstaller/Main",
             "Updated": {
-                "value": "\/Date(1676003317000)\/",
+                "value": "\/Date(1714307433000)\/",
                 "DisplayHint": 2,
-                "DateTime": "Thursday, February 9, 2023 11:28:37 PM"
+                "DateTime": "Sunday, April 28, 2024 8:30:33 AM"
             },
-            "Manifests": 1159
+            "Manifests": 1317
+        },
+        {
+            "Name": "extras",
+            "Source": "https://github.com/ScoopInstaller/Extras",
+            "Updated": {
+                "value": "\/Date(1714307562000)\/",
+                "DisplayHint": 2,
+                "DateTime": "Sunday, April 28, 2024 8:32:42 AM"
+            },
+            "Manifests": 2013
         },
         {
             "Name": "sysinternals",
             "Source": "https://github.com/niheaven/scoop-sysinternals",
             "Updated": {
-                "value": "\/Date(1674678598000)\/",
+                "value": "\/Date(1708509724000)\/",
                 "DisplayHint": 2,
-                "DateTime": "Wednesday, January 25, 2023 3:29:58 PM"
+                "DateTime": "Wednesday, February 21, 2024 5:02:04 AM"
             },
             "Manifests": 75
+        },
+        {
+            "Name": "nonportable",
+            "Source": "https://github.com/ScoopInstaller/Nonportable",
+            "Updated": {
+                "value": "\/Date(1714308859000)\/",
+                "DisplayHint": 2,
+                "DateTime": "Sunday, April 28, 2024 8:54:19 AM"
+            },
+            "Manifests": 127
         }
     ]
 }

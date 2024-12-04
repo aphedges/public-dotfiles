@@ -1,19 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091
 
-# Source global definitions
-if [[ -f /etc/bashrc ]]; then
-  . /etc/bashrc
-fi
-
-# Exit early if rest of file is not needed
-# Source: https://unix.stackexchange.com/a/154431
-# Test if the prompt var is not set
-if [[ -z ${PS1:-} ]]; then
-  # Prompt var is not set, so this is *not* an interactive shell
-  return
-fi
-
 set -euo pipefail
 
 source "$HOME"/.bash_common
@@ -24,12 +11,25 @@ set_functions
 set_variables
 
 # Initialize programs
-initialize_slurm || true
-initialize_spack || true
+initialize_homebrew
 initialize_pyenv
 initialize_python
 initialize_node
 initialize_direnv
+initialize_trash
+
+# For adding `pycharm`, `idea`, etc. to terminal
+JETBRAINS_HOME="$HOME/.jetbrains_scripts"
+if [[ -d $JETBRAINS_HOME ]]; then
+  export PATH="$JETBRAINS_HOME:$PATH"
+fi
+unset JETBRAINS_HOME
+
+# For Rust
+RUST_HOME="$HOME/.cargo/env"
+if [[ -f $RUST_HOME ]]; then
+  source "$RUST_HOME"
+fi
 
 # Allow local overrides of other programs
 export PATH=$HOME/.local/bin:$HOME/bin:$PATH

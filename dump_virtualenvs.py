@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 from typing import Tuple
 
@@ -33,8 +34,24 @@ def version_sort_key(version_name: str) -> Tuple[Tuple[int, ...], str]:
     if match:
         version = tuple(int(i) for i in match.groups())
     else:
-        version = (10 ** 12,)  # Safe to assume no "Python One Trillion" release any time soon
+        version = (10**12,)  # Safe to assume no "Python One Trillion" release any time soon
     return version, version_name
+
+
+def environment_sort_key(environment_name: str) -> str:
+    """Generates key for sorting pyenv environments by name.
+
+    Args:
+        environment_name: Name of pyenv environment.
+
+    Returns:
+        Python environment name.
+    """
+    match = re.fullmatch(r".*/envs/(.*)", environment_name)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError(f"Could not parse environment name from {environment_name!r}")
 
 
 def main() -> None:
@@ -55,12 +72,8 @@ def main() -> None:
     versions = sorted((ver for ver in versions if "/envs/" not in ver), key=version_sort_key)
 
     envs = run("pyenv", "virtualenvs", "--bare", "--skip-aliases").split("\n")
-    venv_name_regex = re.compile(r".*/envs/(.*)")
     # Sort environments by environment name, e.g. "3.6.13/envs/gpt" -> "gpt"
-    envs = sorted(
-        (env for env in envs if "/envs/" in env),
-        key=lambda v: venv_name_regex.search(v).groups(1),
-    )
+    envs = sorted((env for env in envs if "/envs/" in env), key=environment_sort_key)
 
     virtualenvs = []
     for env in envs:
@@ -79,7 +92,19 @@ def main() -> None:
             }
         )
 
-    data = {"global_version": global_version, "versions": versions, "virtualenvs": virtualenvs}
+    if pipx_path := shutil.which("pipx"):
+        print("Reading from pipx")
+        pipx_list_json_output = run(pipx_path, "list", "--json")
+        pipx_spec_metadata = json.loads(pipx_list_json_output)
+    else:
+        pipx_spec_metadata = None
+
+    data = {
+        "global_version": global_version,
+        "versions": versions,
+        "virtualenvs": virtualenvs,
+        "pipx_spec_metadata": pipx_spec_metadata,
+    }
 
     with open(args.output_file, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=2)
